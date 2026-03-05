@@ -35,7 +35,10 @@ void SPHSystem::update(float dt) {
 
     // update velocity from acceleration and position from velocity
     p.velocity += p.acceleration * dt;
-    p.velocity *= 0.97f; // down from 0.99f
+    // attenuate velocity to simulate energy loss from viscosity and collisions
+    float speed = glm::length(p.velocity);
+    float dampFactor = speed < 0.5f ? 0.90f : 0.98f;
+    p.velocity *= dampFactor;
 
     // cap velocity to prevent explosion
     float maxVel = 2.0f;
@@ -114,10 +117,31 @@ void SPHSystem::computeForces() {
             // your turn -- formula: viscosity * mass * (neighbor.velocity - p.velocity) / neighbor.density * W(len)
             glm::vec3 visc = viscosity * neighbor->mass * (neighbor->velocity - p.velocity) / neighbor->density * W(len);
             viscosityForce += visc;
+
+            // surface tension - cohesion between nearby particles
+            // float surfaceTension = 0.001f;
+            // for (Particle* neighbor : neighbors) {
+            //     if (neighbor == &p) continue;
+                
+            //     // only apply near surface (low density regions)
+            //     if (p.density > restDensity * 0.8f) continue;
+                
+            //     glm::vec3 r = p.position - neighbor->position;
+            //     float len = glm::length(r);
+            //     if (len < 0.0001f || len > h) continue;
+                
+            //     float q = 1.0f - (len / h);
+            //     glm::vec3 cohesion = -surfaceTension * neighbor->mass * q * q * glm::normalize(r);
+            //     pressureForce += cohesion;
+            // }
         }
 
         // set acceleration from forces + gravity
         p.acceleration = (pressureForce + viscosityForce) / p.density;
-        p.acceleration.y += gravity;
+        p.acceleration += gravityDir * abs(gravity);
     }
+}
+
+void SPHSystem::setGravityDirection(glm::vec3 dir) {
+    gravityDir = glm::normalize(dir);
 }

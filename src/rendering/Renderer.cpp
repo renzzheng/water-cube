@@ -96,11 +96,12 @@ Renderer::Renderer()
     glBindVertexArray(0);
 }
 
-void Renderer::draw(Camera& camera, int screenWidth, int screenHeight) {
+void Renderer::draw(Camera& camera, int screenWidth, int screenHeight, glm::mat4 cubeRotation) {
     shader.use();
 
-    // model matrix - identity for now (cube sits at origin)
-    glm::mat4 model = glm::mat4(1.0f);
+    // // model matrix - identity for now (cube sits at origin)
+    // glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 model = cubeRotation;
 
     // view and projection from camera
     glm::mat4 view = camera.getViewMatrix();
@@ -153,7 +154,7 @@ void Renderer::drawParticles(SPHSystem& sph, Camera& camera, int screenWidth, in
     glBindVertexArray(0);
 }
 
-void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight) {
+void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight, glm::mat4 cubeRotation) {
     std::vector<glm::vec3>& verts = mc.getVertices();
     std::vector<glm::vec3>& norms = mc.getNormals();
     if (verts.empty()) return;
@@ -170,7 +171,7 @@ void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWid
 
     fluidShader.use();
 
-    glm::mat4 model      = glm::mat4(1.0f);
+    glm::mat4 model      = cubeRotation;
     glm::mat4 view       = camera.getViewMatrix();
     float aspect         = (float)screenWidth / (float)screenHeight;
     glm::mat4 projection = camera.getProjectionMatrix(aspect);
@@ -179,7 +180,6 @@ void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWid
     fluidShader.setMat4("view",       glm::value_ptr(view));
     fluidShader.setMat4("projection", glm::value_ptr(projection));
 
-    // light position above and to the side
     fluidShader.setVec3("lightPos", 2.0f, 4.0f, 2.0f);
     fluidShader.setVec3("viewPos",  camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 

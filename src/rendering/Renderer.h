@@ -7,9 +7,9 @@
 class Renderer {
 public:
     Renderer();
-    void draw(Camera& camera, int screenWidth, int screenHeight);
+    void draw(Camera& camera, int screenWidth, int screenHeight, glm::mat4 cubeRotation);  
     void drawParticles(SPHSystem& sph, Camera& camera, int screenWidth, int screenHeight);
-    void drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight);
+    void drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight, glm::mat4 cubeRotation);
 
 private:
     // cube

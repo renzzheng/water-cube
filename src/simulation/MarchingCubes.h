@@ -15,7 +15,7 @@ public:
 private:
     int gridSize;
     float cubeSize;
-    float isoLevel = 0.5f;
+    float isoLevel = 0.4f;
 
     std::vector<std::vector<std::vector<float>>> grid;
     std::vector<glm::vec3> vertices;

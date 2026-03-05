@@ -6,7 +6,7 @@
 #include "rendering/Camera.h"
 #include "simulation/SPHSystem.h"
 #include "simulation/MarchingCubes.h"
-#include "simulation/MarchingCubes.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 const int WIDTH  = 800;
 const int HEIGHT = 600;
@@ -86,11 +86,30 @@ int main() {
     // main loop that runs with the water cube
     float lastFrame = 0.0f;
 
+    // rotation matrix
+    glm::mat4 cubeRotation = glm::mat4(1.0f); // starts as identity (no rotation)
+    float rotateSpeed = 1.0f;
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         float dt = currentFrame - lastFrame;
-        // dt = std::min(dt, 0.016f); // down from 0.016f
         lastFrame = currentFrame;
+
+        // cube rotation input
+        if (glfwGetKey(window, GLFW_KEY_LEFT)  == GLFW_PRESS)
+            cubeRotation = glm::rotate(cubeRotation, rotateSpeed * dt, glm::vec3(0, 0, 1));
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+            cubeRotation = glm::rotate(cubeRotation, -rotateSpeed * dt, glm::vec3(0, 0, 1));
+        if (glfwGetKey(window, GLFW_KEY_UP)    == GLFW_PRESS)
+            cubeRotation = glm::rotate(cubeRotation, rotateSpeed * dt, glm::vec3(1, 0, 0));
+        if (glfwGetKey(window, GLFW_KEY_DOWN)  == GLFW_PRESS)
+            cubeRotation = glm::rotate(cubeRotation, -rotateSpeed * dt, glm::vec3(1, 0, 0));
+
+        // update gravity direction based on cube rotation
+        glm::vec3 worldGravity = glm::vec3(0.0f, -1.0f, 0.0f);
+        glm::mat3 invRotation = glm::mat3(glm::transpose(cubeRotation));
+        glm::vec3 localGravity = invRotation * worldGravity;
+        sph.setGravityDirection(localGravity);
 
         // update simulation
         sph.update(dt);
@@ -100,18 +119,11 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderer.draw(camera, WIDTH, HEIGHT);
-        // renderer.drawParticles(sph, camera, WIDTH, HEIGHT); // commented out
-        renderer.drawFluidSurface(mc, camera, WIDTH, HEIGHT);
+        renderer.draw(camera, WIDTH, HEIGHT, cubeRotation);
+        renderer.drawFluidSurface(mc, camera, WIDTH, HEIGHT, cubeRotation);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-
-        sph.update(dt);
-
-        mc.update(sph.getParticleData());
-
     }
 
     // terminate GLFW when done to destroy the window and clean up resources

@@ -38,8 +38,8 @@ void MarchingCubes::buildGrid(const std::vector<Particle>& particles) {
 
                 for (const Particle& p : particles) {
                     float dist = glm::length(pos - p.position);
-                        if (dist < 1.0f) {  // up from 0.8f
-                            float q = 1.0f - (dist / 1.0f);
+                        if (dist < 1.2f) {
+                            float q = 1.0f - (dist / 1.2f);
                             density += q * q * q;
                         }
                 }

@@ -28,6 +28,8 @@ public:
     glm::vec3 gradW(glm::vec3 r);   // smoothing kernel gradient
     float W(float r);               // smoothing kernel
 
+    void setGravityDirection(glm::vec3 dir);
+
 private:
     std::vector<Particle> particles;
     SpatialHash spatialHash;
