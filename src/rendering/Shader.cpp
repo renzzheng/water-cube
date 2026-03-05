@@ -1,10 +1,10 @@
 // GLSL shader management
-
-#include "Shader.h"
-#include <glad/glad.h>
+#include <iostream>
 #include <fstream>
 #include <sstream>
-#include <iostream>
+#include "Shader.h"
+#include <glad/glad.h>
+
 
 Shader::Shader(const std::string& vertPath, const std::string& fragPath) {
     // read vertex shader file
