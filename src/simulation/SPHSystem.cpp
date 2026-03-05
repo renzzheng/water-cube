@@ -26,7 +26,7 @@ void SPHSystem::init() {
         }
     }
 
-    std::cout << "Particle count: " << particles.size() << std::endl;
+    // std::cout << "Particle count: " << particles.size() << std::endl;
 }
 
 void SPHSystem::update(float dt) {

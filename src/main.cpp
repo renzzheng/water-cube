@@ -5,6 +5,8 @@
 #include "rendering/Renderer.h"
 #include "rendering/Camera.h"
 #include "simulation/SPHSystem.h"
+#include "simulation/MarchingCubes.h"
+#include "simulation/MarchingCubes.h"
 
 const int WIDTH  = 800;
 const int HEIGHT = 600;
@@ -77,6 +79,8 @@ int main() {
     Renderer renderer;
     SPHSystem sph;
 
+    MarchingCubes mc(20, 2.0f);
+
     // main loop that runs with the water cube
     float lastFrame = 0.0f;
 
@@ -85,12 +89,17 @@ int main() {
         float dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // update simulation
+        sph.update(dt);
+        mc.update(sph.getParticleData());
+
+        // render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        sph.update(dt);
         renderer.draw(camera, WIDTH, HEIGHT);
-        renderer.drawParticles(sph, camera, WIDTH, HEIGHT);
+        // renderer.drawParticles(sph, camera, WIDTH, HEIGHT); // commented out
+        renderer.drawFluidSurface(mc, camera, WIDTH, HEIGHT);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

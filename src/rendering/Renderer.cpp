@@ -38,8 +38,10 @@ unsigned int indices[] = {
     3, 7   // back left edge
 };
 
-Renderer::Renderer(): shader("../src/shaders/cube.vert", "../src/shaders/cube.frag"),
-                         particleShader("../src/shaders/fluid.vert", "../src/shaders/fluid.frag") {
+Renderer::Renderer()
+    : shader("../src/shaders/cube.vert", "../src/shaders/cube.frag"),
+      particleShader("../src/shaders/fluid.vert", "../src/shaders/fluid.frag"),
+      fluidShader("../src/shaders/fluid.vert", "../src/shaders/fluid.frag") {
     // create GPU buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -70,6 +72,16 @@ Renderer::Renderer(): shader("../src/shaders/cube.vert", "../src/shaders/cube.fr
     glBindVertexArray(particleVAO);
     glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
     glBufferData(GL_ARRAY_BUFFER, 256 * 3 * sizeof(float), nullptr, GL_DYNAMIC_DRAW); // pre-allocate for 256 particles
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+    
+    // --- fluid surface buffers ---
+    glGenVertexArrays(1, &fluidVAO);
+    glGenBuffers(1, &fluidVBO);
+
+    glBindVertexArray(fluidVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluidVBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
@@ -129,5 +141,30 @@ void Renderer::drawParticles(SPHSystem& sph, Camera& camera, int screenWidth, in
     glPointSize(5.0f);
     glBindVertexArray(particleVAO);
     glDrawArrays(GL_POINTS, 0, particles.size());
+    glBindVertexArray(0);
+}
+
+void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight) {
+    std::vector<glm::vec3>& verts = mc.getVertices();
+    if (verts.empty()) return;
+
+    glBindVertexArray(fluidVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, fluidVBO);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec3), verts.data(), GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+
+    fluidShader.use();
+
+    glm::mat4 model      = glm::mat4(1.0f);
+    glm::mat4 view       = camera.getViewMatrix();
+    float aspect         = (float)screenWidth / (float)screenHeight;
+    glm::mat4 projection = camera.getProjectionMatrix(aspect);
+
+    fluidShader.setMat4("model",      glm::value_ptr(model));
+    fluidShader.setMat4("view",       glm::value_ptr(view));
+    fluidShader.setMat4("projection", glm::value_ptr(projection));
+
+    glBindVertexArray(fluidVAO);
+    glDrawArrays(GL_TRIANGLES, 0, verts.size());
     glBindVertexArray(0);
 }
