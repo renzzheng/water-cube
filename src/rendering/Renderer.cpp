@@ -1,4 +1,5 @@
 // OpenGL drawing and rendering logic
+#include <iostream>
 #include "Renderer.h"
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,7 +38,8 @@ unsigned int indices[] = {
     3, 7   // back left edge
 };
 
-Renderer::Renderer() : shader("../src/shaders/cube.vert", "../src/shaders/cube.frag") {
+Renderer::Renderer(): shader("../src/shaders/cube.vert", "../src/shaders/cube.frag"),
+                         particleShader("../src/shaders/fluid.vert", "../src/shaders/fluid.frag") {
     // create GPU buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -60,6 +62,17 @@ Renderer::Renderer() : shader("../src/shaders/cube.vert", "../src/shaders/cube.f
 
     // unbind
     glBindVertexArray(0);
+
+    // particle buffers
+    glGenVertexArrays(1, &particleVAO);
+    glGenBuffers(1, &particleVBO);
+
+    glBindVertexArray(particleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+    glBufferData(GL_ARRAY_BUFFER, 256 * 3 * sizeof(float), nullptr, GL_DYNAMIC_DRAW); // pre-allocate for 256 particles
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 }
 
 void Renderer::draw(Camera& camera, int screenWidth, int screenHeight) {
@@ -81,5 +94,40 @@ void Renderer::draw(Camera& camera, int screenWidth, int screenHeight) {
     // draw the wireframe cube
     glBindVertexArray(VAO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
+void Renderer::drawParticles(SPHSystem& sph, Camera& camera, int screenWidth, int screenHeight) {
+    // extract positions
+    std::vector<Particle> particles = sph.getParticleData();
+    std::cout << "Drawing " << particles.size() << " particles" << std::endl;
+    std::vector<float> positions;
+    for (Particle& p : particles) {
+        positions.push_back(p.position.x);
+        positions.push_back(p.position.y);
+        positions.push_back(p.position.z);
+    }
+
+    // upload to GPU
+    glBindVertexArray(particleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+
+    // draw
+    particleShader.use();
+
+    glm::mat4 model      = glm::mat4(1.0f);
+    glm::mat4 view       = camera.getViewMatrix();
+    float aspect         = (float)screenWidth / (float)screenHeight;
+    glm::mat4 projection = camera.getProjectionMatrix(aspect);
+
+    particleShader.setMat4("model",      glm::value_ptr(model));
+    particleShader.setMat4("view",       glm::value_ptr(view));
+    particleShader.setMat4("projection", glm::value_ptr(projection));
+
+    glPointSize(5.0f);
+    glBindVertexArray(particleVAO);
+    glDrawArrays(GL_POINTS, 0, particles.size());
     glBindVertexArray(0);
 }

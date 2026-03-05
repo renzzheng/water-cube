@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "rendering/Renderer.h"
 #include "rendering/Camera.h"
+#include "simulation/SPHSystem.h"
 
 const int WIDTH  = 800;
 const int HEIGHT = 600;
@@ -15,6 +16,7 @@ bool  firstMouse = true;
 float lastX = WIDTH  / 2.0f;
 float lastY = HEIGHT / 2.0f;
 
+// orbit camera around the cube when left mouse button is held and mouse moves
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     if (firstMouse) {
         lastX = xpos;
@@ -73,13 +75,22 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     Renderer renderer;
+    SPHSystem sph;
 
     // main loop that runs with the water cube
+    float lastFrame = 0.0f;
+
     while (!glfwWindowShouldClose(window)) {
+        float currentFrame = glfwGetTime();
+        float dt = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        sph.update(dt);
         renderer.draw(camera, WIDTH, HEIGHT);
+        renderer.drawParticles(sph, camera, WIDTH, HEIGHT);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
