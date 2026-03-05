@@ -9,6 +9,8 @@ public:
 
     void update(const std::vector<Particle>& particles);
     std::vector<glm::vec3>& getVertices();
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3>& getNormals();
 
 private:
     int gridSize;

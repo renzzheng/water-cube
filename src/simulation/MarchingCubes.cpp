@@ -38,10 +38,10 @@ void MarchingCubes::buildGrid(const std::vector<Particle>& particles) {
 
                 for (const Particle& p : particles) {
                     float dist = glm::length(pos - p.position);
-                    if (dist < 0.8f) {
-                        float q = 1.0f - (dist / 0.8f);
-                        density += q * q * q; // simple cubic kernel
-                    }
+                        if (dist < 1.0f) {  // up from 0.8f
+                            float q = 1.0f - (dist / 1.0f);
+                            density += q * q * q;
+                        }
                 }
 
                 // to make the surface smoother near the walls, we can add a contribution that increases density as we get closer to the walls
@@ -68,6 +68,7 @@ glm::vec3 MarchingCubes::interpolate(glm::vec3 p1, glm::vec3 p2, float v1, float
 
 void MarchingCubes::march() {
     vertices.clear();
+    normals.clear();
 
     for (int x = 0; x < gridSize; x++) {
         for (int y = 0; y < gridSize; y++) {
@@ -119,9 +120,18 @@ void MarchingCubes::march() {
 
                 // add triangles
                 for (int i = 0; triTable[cubeIndex][i] != -1; i += 3) {
-                    vertices.push_back(edgeVerts[triTable[cubeIndex][i]]);
-                    vertices.push_back(edgeVerts[triTable[cubeIndex][i+1]]);
-                    vertices.push_back(edgeVerts[triTable[cubeIndex][i+2]]);
+                    glm::vec3 v0 = edgeVerts[triTable[cubeIndex][i]];
+                    glm::vec3 v1 = edgeVerts[triTable[cubeIndex][i+1]];
+                    glm::vec3 v2 = edgeVerts[triTable[cubeIndex][i+2]];
+
+                    vertices.push_back(v0);
+                    vertices.push_back(v1);
+                    vertices.push_back(v2);
+
+                    glm::vec3 normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+                    normals.push_back(normal);
+                    normals.push_back(normal);
+                    normals.push_back(normal);
                 }
             }
         }
@@ -135,4 +145,8 @@ void MarchingCubes::update(const std::vector<Particle>& particles) {
 
 std::vector<glm::vec3>& MarchingCubes::getVertices() {
     return vertices;
+}
+
+std::vector<glm::vec3>& MarchingCubes::getNormals() {
+    return normals;
 }

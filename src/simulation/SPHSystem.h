@@ -14,6 +14,8 @@
 //     float     pressure;
 // };
 
+void setGravityDirection(glm::vec3 dir);
+
 class SPHSystem {
 public:
     SPHSystem();
@@ -36,4 +38,5 @@ private:
     float stiffness   = 5.0f;
     float viscosity   = 0.1f;
     float maxVel = 5.0f;
+    glm::vec3 gravityDir = glm::vec3(0.0f, -1.0f, 0.0f);
 };

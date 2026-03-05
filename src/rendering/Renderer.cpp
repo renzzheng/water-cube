@@ -79,11 +79,20 @@ Renderer::Renderer()
     // --- fluid surface buffers ---
     glGenVertexArrays(1, &fluidVAO);
     glGenBuffers(1, &fluidVBO);
+    glGenBuffers(1, &fluidNormalVBO);
 
     glBindVertexArray(fluidVAO);
+
+    // positions at location 0
     glBindBuffer(GL_ARRAY_BUFFER, fluidVBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // normals at location 1
+    glBindBuffer(GL_ARRAY_BUFFER, fluidNormalVBO);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
     glBindVertexArray(0);
 }
 
@@ -146,11 +155,17 @@ void Renderer::drawParticles(SPHSystem& sph, Camera& camera, int screenWidth, in
 
 void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWidth, int screenHeight) {
     std::vector<glm::vec3>& verts = mc.getVertices();
+    std::vector<glm::vec3>& norms = mc.getNormals();
     if (verts.empty()) return;
 
     glBindVertexArray(fluidVAO);
+
     glBindBuffer(GL_ARRAY_BUFFER, fluidVBO);
     glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec3), verts.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, fluidNormalVBO);
+    glBufferData(GL_ARRAY_BUFFER, norms.size() * sizeof(glm::vec3), norms.data(), GL_DYNAMIC_DRAW);
+
     glBindVertexArray(0);
 
     fluidShader.use();
@@ -163,6 +178,10 @@ void Renderer::drawFluidSurface(MarchingCubes& mc, Camera& camera, int screenWid
     fluidShader.setMat4("model",      glm::value_ptr(model));
     fluidShader.setMat4("view",       glm::value_ptr(view));
     fluidShader.setMat4("projection", glm::value_ptr(projection));
+
+    // light position above and to the side
+    fluidShader.setVec3("lightPos", 2.0f, 4.0f, 2.0f);
+    fluidShader.setVec3("viewPos",  camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
 
     glBindVertexArray(fluidVAO);
     glDrawArrays(GL_TRIANGLES, 0, verts.size());

@@ -74,7 +74,8 @@ int main() {
     //     handle_error(code);
 
     // enable depth testing so closer faces draw on top
-    glEnable(GL_BLEND);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_FRONT);  // cull front instead of back
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Renderer renderer;

@@ -15,6 +15,7 @@ public:
     void orbit(float deltaYaw, float deltaPitch);
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix(float aspectRatio);
+    glm::vec3 getPosition() { return position; }
 
 private:
     void updatePosition();

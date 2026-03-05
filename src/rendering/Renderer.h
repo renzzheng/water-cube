@@ -3,7 +3,6 @@
 #include "Camera.h"
 #include "../simulation/SPHSystem.h"
 #include "../simulation/MarchingCubes.h"
-#include "../simulation/MarchingCubes.h"
 
 class Renderer {
 public:
@@ -22,6 +21,6 @@ private:
     Shader particleShader;
 
     // fluid surface
-    unsigned int fluidVAO, fluidVBO;
+    unsigned int fluidVAO, fluidVBO, fluidNormalVBO;
     Shader fluidShader;
 };
