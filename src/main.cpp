@@ -88,7 +88,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         float dt = currentFrame - lastFrame;
-        // dt = std::min(dt, 0.032f); // down from 0.016f
+        // dt = std::min(dt, 0.016f); // down from 0.016f
         lastFrame = currentFrame;
 
         // update simulation

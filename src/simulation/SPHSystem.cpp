@@ -10,7 +10,7 @@ void SPHSystem::init() {
     float spacing = 0.2f;
 
     for (float x = -1.0f; x <= 1.0f; x += spacing) {
-        for (float y = -1.0f; y <= -0.3f; y += spacing) {
+        for (float y = -1.0f; y <= -0.1f; y += spacing) {  // 2 more layers
             for (float z = -1.0f; z <= 1.0f; z += spacing) {
                 Particle p;
                 p.position     = glm::vec3(x, y, z);

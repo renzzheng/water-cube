@@ -43,6 +43,17 @@ void MarchingCubes::buildGrid(const std::vector<Particle>& particles) {
                         density += q * q * q; // simple cubic kernel
                     }
                 }
+
+                // to make the surface smoother near the walls, we can add a contribution that increases density as we get closer to the walls
+                // to simiulate the effect of surface tension pulling the fluid away from the walls and creating a more rounded surface
+                // the meniscus effect is more pronounced near the surface, so we can apply this wall contribution only to grid points that are near the surface (e.g. y between -0.5 and 0.2)
+                if (pos.y > -1.0f && pos.y < 0.2f) { // entire fluid height, not just surface
+                    float wallDist = 0.3f;
+                    if (pos.x < -1.0f + wallDist) density += (wallDist - (pos.x + 1.0f)) * 0.5f;
+                    if (pos.x >  1.0f - wallDist) density += (wallDist - (1.0f - pos.x)) * 0.5f;
+                    if (pos.z < -1.0f + wallDist) density += (wallDist - (pos.z + 1.0f)) * 0.5f;
+                    if (pos.z >  1.0f - wallDist) density += (wallDist - (1.0f - pos.z)) * 0.5f;
+                }
                 grid[x][y][z] = density;
             }
         }
