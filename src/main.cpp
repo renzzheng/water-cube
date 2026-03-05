@@ -95,6 +95,10 @@ int main() {
         float dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        dt = std::min(dt, 0.016f);
+
+        sph.update(dt);
+
         // cube rotation input
         if (glfwGetKey(window, GLFW_KEY_LEFT)  == GLFW_PRESS)
             cubeRotation = glm::rotate(cubeRotation, rotateSpeed * dt, glm::vec3(0, 0, 1));

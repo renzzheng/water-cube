@@ -41,9 +41,11 @@ void SPHSystem::update(float dt) {
     p.velocity *= dampFactor;
 
     // cap velocity to prevent explosion
-    float maxVel = 2.0f;
-    if (glm::length(p.velocity) > maxVel)
+    float v2 = glm::dot(p.velocity, p.velocity);
+    if (v2 > maxVel * maxVel)
+    {
         p.velocity = glm::normalize(p.velocity) * maxVel;
+    }
 
     p.position += p.velocity * dt;
 
@@ -79,6 +81,18 @@ glm::vec3 SPHSystem::gradW(glm::vec3 r) {
     return coeff * kernel * r;
 }
 
+glm::vec3 SPHSystem::spikyGrad(const glm::vec3& r) {
+    float rlen = glm::length(r);
+
+    if (rlen <= 1e-6f || rlen > h)
+        return glm::vec3(0.0f);
+
+    float coeff = -45.0f / (M_PI * pow(h, 6));
+    float term = (h - rlen) * (h - rlen);
+
+    return coeff * term * (r / rlen);
+}
+
 void SPHSystem::computeDensityPressure() {
     spatialHash.build(particles);
 
@@ -91,6 +105,7 @@ void SPHSystem::computeDensityPressure() {
             p.density += neighbor->mass * W(r);
         }
         p.pressure = stiffness * (p.density - restDensity);
+        p.pressure = std::max(p.pressure, 0.0f);
     }
 }
 
@@ -110,7 +125,9 @@ void SPHSystem::computeForces() {
             // pressure force
             // your turn -- use gradW, and average pressure of p and neighbor
             // formula: -mass * (p.pressure + neighbor.pressure) / (2 * neighbor.density) * gradW(r)
-            glm::vec3 pressureGrad = -neighbor->mass * (p.pressure + neighbor->pressure) / (2.0f * neighbor->density) * gradW(r);
+            glm::vec3 pressureGrad =
+                -neighbor->mass * (p.pressure + neighbor->pressure) /
+                (2.0f * neighbor->density) * spikyGrad(r);
             pressureForce += pressureGrad;
 
             // viscosity force

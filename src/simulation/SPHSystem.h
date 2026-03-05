@@ -30,6 +30,8 @@ public:
 
     void setGravityDirection(glm::vec3 dir);
 
+    glm::vec3 spikyGrad(const glm::vec3& r);
+
 private:
     std::vector<Particle> particles;
     SpatialHash spatialHash;
@@ -37,7 +39,7 @@ private:
     float particleMass = 0.02f;
     float h           = 0.35f;
     float restDensity = 15.0f;
-    float stiffness   = 5.0f;
+    float stiffness = 800.0f;
     float viscosity   = 0.1f;
     float maxVel = 5.0f;
     glm::vec3 gravityDir = glm::vec3(0.0f, -1.0f, 0.0f);
