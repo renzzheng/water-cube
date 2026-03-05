@@ -1,7 +1,7 @@
 #include <iostream>
 #include "SPHSystem.h"
 
-SPHSystem::SPHSystem() {
+SPHSystem::SPHSystem() : spatialHash(0.35f) {
     init();
 }
 
@@ -9,10 +9,9 @@ void SPHSystem::init() {
     particles.clear();
     float spacing = 0.2f;
 
-    for (float x = -0.8f; x < 0.8f; x += spacing) {
-        for (float y = -0.8f; y < 0.0f; y += spacing) {
-            for (float z = -0.8f; z < 0.8f; z += spacing) {
-
+    for (float x = -1.0f; x <= 1.0f; x += spacing) {
+        for (float y = -1.0f; y <= -0.3f; y += spacing) {
+            for (float z = -1.0f; z <= 1.0f; z += spacing) {
                 Particle p;
                 p.position     = glm::vec3(x, y, z);
                 p.velocity     = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -20,13 +19,10 @@ void SPHSystem::init() {
                 p.mass         = particleMass;
                 p.density      = 0.0f;
                 p.pressure     = 0.0f;
-
                 particles.push_back(p);
             }
         }
     }
-
-    // std::cout << "Particle count: " << particles.size() << std::endl;
 }
 
 void SPHSystem::update(float dt) {
@@ -39,6 +35,8 @@ void SPHSystem::update(float dt) {
 
     // update velocity from acceleration and position from velocity
     p.velocity += p.acceleration * dt;
+    p.velocity *= 0.97f; // down from 0.99f
+
     // cap velocity to prevent explosion
     float maxVel = 2.0f;
     if (glm::length(p.velocity) > maxVel)
@@ -79,11 +77,15 @@ glm::vec3 SPHSystem::gradW(glm::vec3 r) {
 }
 
 void SPHSystem::computeDensityPressure() {
-    for(Particle& p : particles) {
+    spatialHash.build(particles);
+
+    for (Particle& p : particles) {
         p.density = 0.0f;
-        for(Particle& neighbor : particles) {
-            float r = glm::length(p.position - neighbor.position);
-            p.density += neighbor.mass * W(r);
+        std::vector<Particle*> neighbors = spatialHash.getNeighbors(p.position);
+
+        for (Particle* neighbor : neighbors) {
+            float r = glm::length(p.position - neighbor->position);
+            p.density += neighbor->mass * W(r);
         }
         p.pressure = stiffness * (p.density - restDensity);
     }
@@ -94,22 +96,23 @@ void SPHSystem::computeForces() {
         glm::vec3 pressureForce(0.0f);
         glm::vec3 viscosityForce(0.0f);
 
-        for (Particle& neighbor : particles) {
-            if (&p == &neighbor) continue; // skip self
+        std::vector<Particle*> neighbors = spatialHash.getNeighbors(p.position);
+        for (Particle* neighbor : neighbors) {
+            if (neighbor == &p) continue;
 
-            glm::vec3 r = p.position - neighbor.position;
+            glm::vec3 r = p.position - neighbor->position;
             float len = glm::length(r);
-            if (len > h) continue; // skip if outside radius
+            if (len > h) continue;
 
             // pressure force
             // your turn -- use gradW, and average pressure of p and neighbor
             // formula: -mass * (p.pressure + neighbor.pressure) / (2 * neighbor.density) * gradW(r)
-            glm::vec3 pressureGrad = -neighbor.mass * (p.pressure + neighbor.pressure) / (2.0f * neighbor.density) * gradW(r);
+            glm::vec3 pressureGrad = -neighbor->mass * (p.pressure + neighbor->pressure) / (2.0f * neighbor->density) * gradW(r);
             pressureForce += pressureGrad;
 
             // viscosity force
             // your turn -- formula: viscosity * mass * (neighbor.velocity - p.velocity) / neighbor.density * W(len)
-            glm::vec3 visc = viscosity * neighbor.mass * (neighbor.velocity - p.velocity) / neighbor.density * W(len);
+            glm::vec3 visc = viscosity * neighbor->mass * (neighbor->velocity - p.velocity) / neighbor->density * W(len);
             viscosityForce += visc;
         }
 

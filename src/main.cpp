@@ -74,12 +74,13 @@ int main() {
     //     handle_error(code);
 
     // enable depth testing so closer faces draw on top
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Renderer renderer;
     SPHSystem sph;
 
-    MarchingCubes mc(20, 2.0f);
+    MarchingCubes mc(10, 2.0f);
 
     // main loop that runs with the water cube
     float lastFrame = 0.0f;
@@ -87,6 +88,7 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
         float dt = currentFrame - lastFrame;
+        // dt = std::min(dt, 0.032f); // down from 0.016f
         lastFrame = currentFrame;
 
         // update simulation
@@ -103,6 +105,12 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+
+        sph.update(dt);
+
+        mc.update(sph.getParticleData());
+
     }
 
     // terminate GLFW when done to destroy the window and clean up resources

@@ -1,16 +1,18 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <vector>
+#include "Particle.h"
+#include "SpatialHash.h"
 
-// spawn water particles in a grid inside the cube
-struct Particle {
-    glm::vec3 position;
-    glm::vec3 velocity;
-    glm::vec3 acceleration;
-    float     mass;
-    float     density;
-    float     pressure;
-};
+// // spawn water particles in a grid inside the cube
+// struct Particle {
+//     glm::vec3 position;
+//     glm::vec3 velocity;
+//     glm::vec3 acceleration;
+//     float     mass;
+//     float     density;
+//     float     pressure;
+// };
 
 class SPHSystem {
 public:
@@ -26,11 +28,12 @@ public:
 
 private:
     std::vector<Particle> particles;
+    SpatialHash spatialHash;
     float gravity     = -9.81f;
     float particleMass = 0.02f;
-    float h           = 0.8f;   
-    float restDensity = 15.0f;  
-    float stiffness   = 5.0f;   
+    float h           = 0.35f;
+    float restDensity = 15.0f;
+    float stiffness   = 5.0f;
     float viscosity   = 0.1f;
     float maxVel = 5.0f;
 };

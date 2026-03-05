@@ -2,5 +2,5 @@
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(0.2f, 0.6f, 1.0f, 1.0f); // blue
+    FragColor = vec4(0.1f, 0.5f, 0.9f, 0.6f); // blue with 60% opacity
 }
