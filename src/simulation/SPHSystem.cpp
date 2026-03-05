@@ -105,7 +105,7 @@ void SPHSystem::computeDensityPressure() {
             p.density += neighbor->mass * W(r);
         }
         p.pressure = stiffness * (p.density - restDensity);
-        p.pressure = std::max(p.pressure, 0.0f);
+        p.pressure = std::max(0.0f, p.pressure);
     }
 }
 
@@ -126,8 +126,10 @@ void SPHSystem::computeForces() {
             // your turn -- use gradW, and average pressure of p and neighbor
             // formula: -mass * (p.pressure + neighbor.pressure) / (2 * neighbor.density) * gradW(r)
             glm::vec3 pressureGrad =
-                -neighbor->mass * (p.pressure + neighbor->pressure) /
-                (2.0f * neighbor->density) * spikyGrad(r);
+                -neighbor->mass *
+                (p.pressure / (p.density * p.density) +
+                neighbor->pressure / (neighbor->density * neighbor->density))
+                * spikyGrad(r);
             pressureForce += pressureGrad;
 
             // viscosity force

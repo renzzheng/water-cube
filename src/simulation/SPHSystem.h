@@ -37,7 +37,7 @@ private:
     SpatialHash spatialHash;
     float gravity     = -9.81f;
     float particleMass = 0.02f;
-    float h           = 0.35f;
+    float h = 0.55f;
     float restDensity = 15.0f;
     float stiffness = 800.0f;
     float viscosity   = 0.1f;
